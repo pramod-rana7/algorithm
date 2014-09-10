@@ -1,6 +1,3 @@
-/**
- * 
- */
 package com.oops.rana.mining.algorithm;
 
 import java.io.Serializable;
@@ -8,7 +5,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * @author parmodrana7
+ * @author pramod_rana7
  * <h1> AprioriData<T> </h1>
  * <p> AprioriData<T> is used Support Apriori data .</p>
  * <b> T is the type of Data provided </b>
