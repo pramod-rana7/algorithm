@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * @author parmodrana7
+ * @author pramod_rana7
  * <h1> Implementation of Apriori  algorithm </h1>
  * <p> Apriori is used to mine all frequent itemsets from the source provided.</p>
  * <b> T is the type of Data provided </b>
@@ -46,7 +46,7 @@ public class Apriori<T> implements Serializable {
 	 * @return the minFrequency
 	 */
 	public int getMinFrequency() {
-		return minFrequency;
+		return minSupport;
 	}
 
 	/**
@@ -90,7 +90,7 @@ public class Apriori<T> implements Serializable {
 		this.primaryDataMap= new HashMap<Set<T>, AprioriData<T>>();
 		this.candidateDataMap= new HashMap<Set<T>, AprioriData<T>>();
 		this.listOfObjectList=listOfObjectList;
-		this.minFrequency=minFrequency<2?2:minFrequency;
+		this.minSupport=minFrequency<2?2:minFrequency;
 		this.allDataMap = new HashMap<Set<T>, AprioriData<T>>();
 	}
 	
@@ -102,7 +102,7 @@ public class Apriori<T> implements Serializable {
 		/** check listOfObject is empty **/
 		if(this.listOfObject==null||this.listOfObject.size()==0){
 			/** true :  call procedure createDataMap() **/
-			this.createDataMap();
+			this.createPrimaryFrequentItemSet();
 		}
 		return this.listOfObject;
 	}
@@ -154,17 +154,17 @@ public class Apriori<T> implements Serializable {
 	}
 
 	/**
-	 * Creation of Candidate Item Set of size paramInt
+	 * Creation of Frequent Item Set of size paramInt
 	 * paramInt must be grater than 1
 	 * @param paramInt
 	 */
-	public void createCandidateSet(int paramInt){
+	public void createFrequentItemSet(int paramInt){
 		/** Check listOfObject is not empty **/
 		if(this.listOfObjectList!=null||this.listOfObjectList.size()!=0){
 			/** Check primaryDataMap is not empty **/
 			if(this.isMapEmpty(this.primaryDataMap)){
 				/** true : execute procedure createDataMap() **/
-				this.createDataMap();
+				this.createPrimaryFrequentItemSet();
 			}
 			
 			Set<Set<T>> keySets;	/** Defining Set of key Set<T> **/
@@ -176,7 +176,7 @@ public class Apriori<T> implements Serializable {
 				keySets=createSubSets(this.primaryDataMap.keySet(),2);
 			}else{
 				/** executing procedure for createCandidateSet for creation of previous subsets **/
-				this.createCandidateSet(paramInt-1);
+				this.createFrequentItemSet(paramInt-1);
 				/** generation of sets of Key of size paramInt **/
 				keySets=createSubSets(this.candidateDataMap.keySet(), paramInt);
 			}
@@ -219,7 +219,7 @@ public class Apriori<T> implements Serializable {
 						intersection.retainAll(aprioriData.getTransactionSet());
 						
 						/** if intersection is less or equal to minFrequiecy skipping the set **/
-						if(intersection.size()<=this.minFrequency){
+						if(intersection.size()<=this.minSupport){
 							continue outerLabe;
 						}
 						
@@ -326,7 +326,7 @@ public class Apriori<T> implements Serializable {
 		List<Set<T>> localKey=new ArrayList<Set<T>>();
 		for(Set<T> key:dataMap.keySet()){
 			/** check the frequency of Item is less than the minFrequency **/
-			if(dataMap.get(key).getCount()<=this.minFrequency){
+			if(dataMap.get(key).getCount()<=this.minSupport){
 				/** creating List of Key which frequency is less **/
 				localKey.add(key);
 			}
@@ -351,9 +351,9 @@ public class Apriori<T> implements Serializable {
 		System.out.println("\n-------------------------------------------------\n");
 	}
 	/**
-	 * <h2> Creation of DataMap to start the Process of Apriori </h2>
+	 * <h2> Creation of first order item set to start the Process of Apriori </h2>
 	 */
-	private void createDataMap(){
+	private void createPrimaryFrequentItemSet(){
 		this.listOfObject=new ArrayList<T>();
 		Set<T> localSet=new HashSet<T>();
 		
@@ -417,7 +417,7 @@ public class Apriori<T> implements Serializable {
 	private Map<Set<T>, AprioriData<T>> primaryDataMap;
 	
 	/** the value required to support the minumum count of object **/
-	private int minFrequency;
+	private int minSupport;
 	
 	/** Store the data of order of set provide in createCandiateSet **/
 	private Map<Set<T>,AprioriData<T>> candidateDataMap;
