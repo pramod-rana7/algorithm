@@ -43,9 +43,9 @@ public class Apriori<T> implements Serializable {
 	}
 	
 	/**
-	 * @return the minFrequency
+	 * @return the minSupport
 	 */
-	public int getMinFrequency() {
+	public int getminSupport() {
 		return minSupport;
 	}
 
@@ -80,17 +80,17 @@ public class Apriori<T> implements Serializable {
 	/**
 	 * <h2> Parameterize Constructor </h2>
 	 * @param listOfObjectList
-	 * @param minFrequency
-	 * <p> Description: It take two parameter listOfObjectList and minFrequency</p>
-	 * <p> minFrequency must be greater than 1. If minFrequecy less than 2 is supplied
+	 * @param minSupport
+	 * <p> Description: It take two parameter listOfObjectList and minSupport</p>
+	 * <p> minSupport must be greater than 1. If minFrequecy less than 2 is supplied
 	 * it will consider it as 2</p>
 	 */
-	public Apriori(List<List<T>> listOfObjectList,int minFrequency) {
+	public Apriori(List<List<T>> listOfObjectList,int minSupport) {
 		this.listOfObject=new ArrayList<T>();
 		this.primaryDataMap= new HashMap<Set<T>, AprioriData<T>>();
 		this.candidateDataMap= new HashMap<Set<T>, AprioriData<T>>();
 		this.listOfObjectList=listOfObjectList;
-		this.minSupport=minFrequency<2?2:minFrequency;
+		this.minSupport=minSupport<2?2:minSupport;
 		this.allDataMap = new HashMap<Set<T>, AprioriData<T>>();
 	}
 	
@@ -319,13 +319,13 @@ public class Apriori<T> implements Serializable {
 	}
 	
 	/**
-	 * Remove the item which frequency is less than or equal to minFrequency
+	 * Remove the item which frequency is less than or equal to minSupport
 	 * @param dataMap
 	 */
 	private void reduce(Map<Set<T>, AprioriData<T>> dataMap){
 		List<Set<T>> localKey=new ArrayList<Set<T>>();
 		for(Set<T> key:dataMap.keySet()){
-			/** check the frequency of Item is less than the minFrequency **/
+			/** check the frequency of Item is less than the minSupport **/
 			if(dataMap.get(key).getCount()<=this.minSupport){
 				/** creating List of Key which frequency is less **/
 				localKey.add(key);
