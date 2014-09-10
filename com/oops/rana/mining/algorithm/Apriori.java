@@ -180,11 +180,11 @@ public class Apriori<T> implements Serializable {
 					Set<Integer> intersection = new HashSet<Integer>(localAprioriData.getTransactionSet());
 					/** get the intersect value of Set**/
 					intersection.retainAll(aprioriData.getTransactionSet());
-					
+					/**
 					if(intersection.size()<=this.minFrequency){
 						break;
 					}
-					
+					**/
 					/** check for the minimum count itemSet **/
 					if(this.primaryDataMap.get(localAprioriData.getItemSet()).getCount()>
 							this.primaryDataMap.get(aprioriData.getItemSet()).getCount()){
