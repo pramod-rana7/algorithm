@@ -43,17 +43,54 @@ public class Apriori<T> implements Serializable {
 	}
 	
 	/**
+	 * @return the minFrequency
+	 */
+	public int getMinFrequency() {
+		return minFrequency;
+	}
+
+	/**
+	 * Get allDataMap.
+	 * It contain the all the subset which support minFrequiency
+	 * @return the allDataMap
+	 */
+	public Map<Set<T>, AprioriData<T>> getAllDataMap() {
+		return allDataMap;
+	}
+	
+	/**
+	 * Get primaryDataMap
+	 * It contain the subset of order one, which support minFrequiecy
+	 * @return the primaryDataMap
+	 */
+	public Map<Set<T>, AprioriData<T>> getPrimaryDataMap() {
+		return this.primaryDataMap;
+	}
+
+	/**
+	 * Get candidateDataMap
+	 * It contain the subset of order provide to createCandidateDataSet
+	 * @return the candidateDataMap
+	 */
+	public Map<Set<T>, AprioriData<T>> getCandidateDataMap() {
+		return this.candidateDataMap;
+	}
+
+	
+	/**
 	 * <h2> Parameterize Constructor </h2>
 	 * @param listOfObjectList
 	 * @param minFrequency
-	 * <p> Description: It take two parameter listOfObjectList and minFrequency </p>
+	 * <p> Description: It take two parameter listOfObjectList and minFrequency</p>
+	 * <p> minFrequency must be greater than 1. If minFrequecy less than 2 is supplied
+	 * it will consider it as 2</p>
 	 */
 	public Apriori(List<List<T>> listOfObjectList,int minFrequency) {
 		this.listOfObject=new ArrayList<T>();
 		this.primaryDataMap= new HashMap<Set<T>, AprioriData<T>>();
 		this.candidateDataMap= new HashMap<Set<T>, AprioriData<T>>();
 		this.listOfObjectList=listOfObjectList;
-		this.minFrequency=minFrequency;
+		this.minFrequency=minFrequency<2?2:minFrequency;
 		this.allDataMap = new HashMap<Set<T>, AprioriData<T>>();
 	}
 	
@@ -93,10 +130,10 @@ public class Apriori<T> implements Serializable {
 	}
 	
 	/**
-	 * <h2> To get AprioriData list from CandidateDataMap </h2>
+	 * <h2> To get AprioriData list from CandidateDataMap</h2>
 	 * @return List of Object of AprioriData
 	 */
-	public  List<AprioriData<T>> getCandidateDataMap(){
+	public  List<AprioriData<T>> getCandidateDataList(){
 		return this.getDataMap(this.candidateDataMap);
 	}
 	
@@ -104,15 +141,15 @@ public class Apriori<T> implements Serializable {
 	 * <h2> To get AprioriData list from primaryDataMap </h2>
 	 * @return List of Object of AprioriData
 	 */
-	public  List<AprioriData<T>> getPrimaryDataMap(){
+	public  List<AprioriData<T>> getPrimaryDataList(){
 		return this.getDataMap(this.primaryDataMap);
 	}
 	
 	/**
-	 * <h2> To get AprioriData list form CandidateDataMap </h2>
+	 * <h2> To get AprioriData list form allDataMap </h2>
 	 * @return List of Object of AprioriData
 	 */
-	public  List<AprioriData<T>> getallDataMap(){
+	public  List<AprioriData<T>> getAllDataList(){
 		return this.getDataMap(this.allDataMap);
 	}
 
@@ -123,94 +160,95 @@ public class Apriori<T> implements Serializable {
 	 */
 	public void createCandidateSet(int paramInt){
 		/** Check listOfObject is not empty **/
-		if(this.listOfObjectList==null||this.listOfObjectList.size()==0){
-			return;
-		}
-		/** Check primaryDataMap is not empty **/
-		if(this.isMapEmpty(this.primaryDataMap)){
-			/** true : execute procedure createDataMap() **/
-			this.createDataMap();
-		}
-		
-		Set<Set<T>> keySets;	/** Defining Set of key Set<T> **/
-		
-		if(paramInt<2){
-			return;
-		}else if(paramInt==2){		/** Check paramInt is equal to 2 **/
-			/** generation of sets of Key of size 2 **/
-			keySets=createSubSets(this.primaryDataMap.keySet(),2);
-		}else{
-			/** executing procedure for createCandidateSet for creation of previous subsets **/
-			this.createCandidateSet(paramInt-1);
-			/** generation of sets of Key of size paramInt **/
-			keySets=createSubSets(this.candidateDataMap.keySet(), paramInt);
-		}
-		
-		/** keySets is empty return**/
-		if(keySets==null||keySets.size()==0){
-			return;
-		}
-		
-		/** Initializing candidateDataMap or removing previous content**/
-		this.candidateDataMap=new HashMap<Set<T>, AprioriData<T>>();
-		
-		/** process starts for the creation of candidateDataMap **/
-		
-		/** getting localKeySetT from keySets **/
-		for(Set<T> localKeySetT:keySets){		
-			/** creating New object of  AprioriData<T> **/
-			AprioriData<T> aprioriData=null;
+		if(this.listOfObjectList!=null||this.listOfObjectList.size()!=0){
+			/** Check primaryDataMap is not empty **/
+			if(this.isMapEmpty(this.primaryDataMap)){
+				/** true : execute procedure createDataMap() **/
+				this.createDataMap();
+			}
+			
+			Set<Set<T>> keySets;	/** Defining Set of key Set<T> **/
+			
+			if(paramInt<2){
+				return;
+			}else if(paramInt==2){		/** Check paramInt is equal to 2 **/
+				/** generation of sets of Key of size 2 **/
+				keySets=createSubSets(this.primaryDataMap.keySet(),2);
+			}else{
+				/** executing procedure for createCandidateSet for creation of previous subsets **/
+				this.createCandidateSet(paramInt-1);
+				/** generation of sets of Key of size paramInt **/
+				keySets=createSubSets(this.candidateDataMap.keySet(), paramInt);
+			}
+			
+			/** keySets is empty return**/
+			if(keySets==null||keySets.size()==0){
+				return;
+			}
+			
+			/** Initializing candidateDataMap or removing previous content**/
+			this.candidateDataMap=new HashMap<Set<T>, AprioriData<T>>();
+			
+			/** process starts for the creation of candidateDataMap **/
+			
+			/** skipping the loop and taking next value**/
+			outerLabe:
+			/** getting localKeySetT from keySets **/
+			for(Set<T> localKeySetT:keySets){		
+				/** creating New object of  AprioriData<T> **/
+				AprioriData<T> aprioriData=null;
 
-			/** getting Object from localKeySetT **/
-			for(T localT:localKeySetT){
-				
-				/** creating new localSet **/
-				Set<T> localSet=new HashSet<T>();
-				/** adding Object to localSet **/
-				localSet.add(localT);
-				/** checking aprioriData is null to initialize**/
-				if(aprioriData==null){
-					/** initializing aprioriData **/
-					aprioriData=this.primaryDataMap.get(localSet);
-				}else{
-					/** creating new AprioriData object to match with previous **/
-					AprioriData<T> localAprioriData=this.primaryDataMap.get(localSet);
+				/** getting Object from localKeySetT **/
+				for(T localT:localKeySetT){
 					
-					/** creating new Set of Integer to retain the value of previous AprioriData**/
-					Set<Integer> intersection = new HashSet<Integer>(localAprioriData.getTransactionSet());
-					/** get the intersect value of Set**/
-					intersection.retainAll(aprioriData.getTransactionSet());
-					/**
-					if(intersection.size()<=this.minFrequency){
-						break;
-					}
-					**/
-					/** check for the minimum count itemSet **/
-					if(this.primaryDataMap.get(localAprioriData.getItemSet()).getCount()>
-							this.primaryDataMap.get(aprioriData.getItemSet()).getCount()){
-						
-						/** Assigning aprioriData  the updated value **/
-						aprioriData=new AprioriData<T>(localSet, intersection,
-								intersection.size(), aprioriData.getMin());
+					/** creating new localSet **/
+					Set<T> localSet=new HashSet<T>();
+					/** adding Object to localSet **/
+					localSet.add(localT);
+					/** checking aprioriData is null to initialize**/
+					if(aprioriData==null){
+						/** initializing aprioriData **/
+						aprioriData=this.primaryDataMap.get(localSet);
 					}else{
-						/** Assigning aprioriData  the updated value **/
-						aprioriData=new AprioriData<T>(localSet, intersection,
-								intersection.size(), localAprioriData.getMin());
+						/** creating new AprioriData object to match with previous **/
+						AprioriData<T> localAprioriData=this.primaryDataMap.get(localSet);
+						
+						/** creating new Set of Integer to retain the value of previous AprioriData**/
+						Set<Integer> intersection = new HashSet<Integer>(localAprioriData.getTransactionSet());
+						/** get the intersect value of Set**/
+						intersection.retainAll(aprioriData.getTransactionSet());
+						
+						/** if intersection is less or equal to minFrequiecy skipping the set **/
+						if(intersection.size()<=this.minFrequency){
+							continue outerLabe;
+						}
+						
+						/** check for the minimum count itemSet **/
+						if(localAprioriData.getCount()>this.primaryDataMap.get(aprioriData.getItemSet()).getCount()){
+							
+							/** Assigning aprioriData  the updated value **/
+							aprioriData=new AprioriData<T>(localSet, intersection,
+									intersection.size(), aprioriData.getMin());
+						}else{
+							/** Assigning aprioriData  the updated value **/
+							aprioriData=new AprioriData<T>(localSet, intersection,
+									intersection.size(), localAprioriData.getMin());
+						}
 					}
 				}
+
+				/** Creating key for Map primaryDataMap **/
+				Set<T> minValue=new HashSet<T>();
+				/** adding the value which will form Key **/
+				minValue.add(aprioriData.getMin());
+
+				/** Assigning new value to aprioriData Object with update values **/
+				aprioriData=new AprioriData<T>(localKeySetT, this.primaryDataMap.get(minValue).getTransactionSet(),
+						aprioriData.getCount(), aprioriData.getMin());
+				
+				/** Adding the aprioriData with key to candidateDataMap **/
+				this.candidateDataMap.put(localKeySetT, aprioriData);
 			}
-
-			/** Creating key for Map primaryDataMap **/
-			Set<T> minValue=new HashSet<T>();
-			/** adding the value which will form Key **/
-			minValue.add(aprioriData.getMin());
-
-			/** Assigning new value to aprioriData Object with update values **/
-			aprioriData=new AprioriData<T>(localKeySetT, this.primaryDataMap.get(minValue).getTransactionSet(),
-					aprioriData.getCount(), aprioriData.getMin());
-			
-			/** Adding the aprioriData with key to candidateDataMap **/
-			this.candidateDataMap.put(localKeySetT, aprioriData);
 		}
 		/** process ends for creation of candidateDataMap **/
 		
@@ -368,11 +406,22 @@ public class Apriori<T> implements Serializable {
 		}
 		return new ArrayList<AprioriData<T>>(dataMap.values());	
 	}
-
+	
+	/** List of data provided **/
 	private List<List<T>> listOfObjectList;
+	
+	/** List of distinct object present in listOfObjectList **/
 	private List<T> listOfObject;
+	
+	/** Store the data of order of set one **/
 	private Map<Set<T>, AprioriData<T>> primaryDataMap;
+	
+	/** the value required to support the minumum count of object **/
 	private int minFrequency;
+	
+	/** Store the data of order of set provide in createCandiateSet **/
 	private Map<Set<T>,AprioriData<T>> candidateDataMap;
+	
+	/** Store all the data of set **/
 	private Map<Set<T>,AprioriData<T>> allDataMap;
 }
