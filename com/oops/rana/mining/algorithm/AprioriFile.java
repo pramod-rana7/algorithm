@@ -5,6 +5,7 @@ package com.oops.rana.mining.algorithm;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,15 +32,28 @@ public class AprioriFile<T> implements Serializable {
 	 * Parameterized Constructor 
 	 * @param listOfObjectList
 	 * @param minSupport
+	 * @throws IOException 
 	 */
-	public AprioriFile(List<List<T>> listOfObjectList,int minSupport) {
+	public AprioriFile(List<List<T>> listOfObjectList,int minSupport) throws IOException {
 		this.listOfObjectList=listOfObjectList;
 		this.minSupport=minSupport;
-		this.backupMetaData=new HashMap<String, Integer>();
+		this.cacheFileMetaData=new HashMap<String, Integer>();
+		File cacheDirectory =new File("cache");
+		
+		/** creating the cache directory **/
+		if(!cacheDirectory.exists()){
+			if(!cacheDirectory.mkdir()){
+				throw new IOException("couldn't able to create cache directory!");
+			}
+		}
 		this.cacheName="./cache/"+this.toString();
 		this.primaryCacheFile=this.cacheName+"p.xml";
 	}
 
+	/**
+	 * Creation of Primary level Item set	
+	 * @throws FileNotFoundException
+	 */
 	private void createPrimaryFrequentItemSet() throws FileNotFoundException{
 		
 		/** Get unique set **/
@@ -69,11 +83,13 @@ public class AprioriFile<T> implements Serializable {
 		
 		/** removing  all the value less than minFrequiecy **/
 		this.reduce(primaryDataMap);
+		
+		/** writing data into file **/
 		CacheWrite cacheWriter=new CacheWrite(new File(this.primaryCacheFile));
 		for(Set<T> key:primaryDataMap.keySet()){
 			cacheWriter.write(primaryDataMap.get(key));
 		}
-		this.backupMetaData.put(this.primaryCacheFile,cacheWriter.getSize());
+		this.cacheFileMetaData.put(this.primaryCacheFile,cacheWriter.getSize());
 		cacheWriter.close();
 	}
 
@@ -96,11 +112,17 @@ public class AprioriFile<T> implements Serializable {
 		}
 	}
 	
+	/**
+	 * Read Data from cache File 
+	 * @param fileName
+	 * @return raw List of AprioriData
+	 * @throws FileNotFoundException
+	 */
 	@SuppressWarnings("unchecked")
 	private List<AprioriData<T>> cacheReadAll(String fileName) throws FileNotFoundException{
 		List<AprioriData<T>> aprioriDataList= new ArrayList<AprioriData<T>>();
 		AprioriData<T> aprioriData=null;
-		Integer size=this.backupMetaData.get(fileName);
+		Integer size=this.cacheFileMetaData.get(fileName);
 		if(size!=null && size>0){
 			CacheRead reader=new CacheRead(new File(fileName));
 			for(int i=0;i<size;i++){
@@ -141,7 +163,7 @@ public class AprioriFile<T> implements Serializable {
 				for(AprioriData<T> data:listData){
 					keys.add(data.getItemSet());
 				}
-				keySets=createSubSets(keys,2);
+				keySets=AprioriFile.getSubSets(keys,2);
 			}else{
 				/** executing procedure for createCandidateSet for creation of previous subsets **/
 				this.createFrequentItemSet(paramInt-1);
@@ -151,7 +173,7 @@ public class AprioriFile<T> implements Serializable {
 				for(AprioriData<T> data:listData){
 					keys.add(data.getItemSet());
 				}
-				keySets=createSubSets(keys, paramInt);
+				keySets=getSubSets(keys, paramInt);
 			}
 			
 			/** keySets is empty return**/
@@ -227,12 +249,13 @@ public class AprioriFile<T> implements Serializable {
 			}
 			/** removing values with frequency less than minFrequiency **/
 			this.reduce(candidateDataMap);
-
+			
+			/** writhing data to the files **/
 			CacheWrite cacheWriter=new CacheWrite(new File(localCacheName));
 			for(Set<T> key:candidateDataMap.keySet()){
 				cacheWriter.write(candidateDataMap.get(key));
 			}
-			this.backupMetaData.put(localCacheName,cacheWriter.getSize());
+			this.cacheFileMetaData.put(localCacheName,cacheWriter.getSize());
 			cacheWriter.close();
 		
 		}
@@ -240,29 +263,40 @@ public class AprioriFile<T> implements Serializable {
 		
 	}
 	
+	/**
+	 * Read the data from the file, if key found return AprioriData else null
+	 * @param fileName  in which the value should be search
+	 * @param key key is the value to be search in the file
+	 * @return AprioriData value if key found else null
+	 * @throws FileNotFoundException
+	 */
 	@SuppressWarnings("unchecked")
 	private AprioriData<T> cacheRead(String fileName,Set<T> key) throws FileNotFoundException{
 		AprioriData<T> aprioriData=null;
-		Integer size=this.backupMetaData.get(fileName);
+		Integer size=this.cacheFileMetaData.get(fileName);
 		if(size!=null && size>0){
 			CacheRead reader=new CacheRead(new File(fileName));
-			for(int i=0;i<size;i++){
-				aprioriData=(AprioriData<T>) reader.readObject();
-				if(aprioriData.getItemSet().equals(key)){
-					return aprioriData;
+			try{
+				for(int i=0;i<size;i++){
+					aprioriData=(AprioriData<T>) reader.readObject();
+					if(aprioriData.getItemSet().equals(key)){
+						return aprioriData;
+					}
 				}
-			}	
+			}finally{
+				reader.close();
+			}
 		}
 		return null;
 	}	
 
 	/**
-	 * Creating subs
-	 * @param parentSet
-	 * @param order
-	 * @return
+	 * Creating sub set of order
+	 * @param parentSet Set from subset is created
+	 * @param order is the number of element each set contain
+	 * @return the given order subset
 	 */
-	public static <T> Set<Set<T>> createSubSets(Set<Set<T>> parentSet,int oder){
+	public static <T> Set<Set<T>> getSubSets(Set<Set<T>> parentSet,int oder){
 		/** Get all the distinct Item from the Set of Set<T> **/
 		Set<T> distinctElementSet=Apriori.getDistinctSet(parentSet);
 		
@@ -300,7 +334,12 @@ public class AprioriFile<T> implements Serializable {
     	return localSet;
 	}
 	
-	
+	/**
+	 * Get List of Item list of paramfrequency 
+	 * @param paramFrequency get the order value 
+	 * @return List of AprioriData
+	 * @throws FileNotFoundException
+	 */
 	public List<AprioriData<T>> getItemList(int paramFrequency) throws FileNotFoundException{
 		if(paramFrequency<1){
 			return null;
@@ -317,8 +356,9 @@ public class AprioriFile<T> implements Serializable {
 	
 	/** the value required to support the minimum count of object **/
 	private int minSupport;
-	
-	private Map<String,Integer> backupMetaData;
+
+	/** cache meta data **/
+	private Map<String,Integer> cacheFileMetaData;
 	private String cacheName;
 	private String primaryCacheFile;
 
