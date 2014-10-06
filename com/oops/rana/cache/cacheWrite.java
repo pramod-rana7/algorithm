@@ -11,7 +11,7 @@ import java.io.Serializable;
 
 /**
  * @author pramod_rana7
- *
+ * Creating Cache to store object in xml file
  */
 public class CacheWrite implements Serializable {
 
@@ -21,14 +21,18 @@ public class CacheWrite implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	/**
+	 * @param File object in which the object is written.
 	 * @throws FileNotFoundException 
-	 * 
 	 */
 	public CacheWrite(File paramFile) throws FileNotFoundException {
 		this.encode = new XMLEncoder(new FileOutputStream(paramFile));
 		this.size=0;
 	}
 	
+	/**
+	 * Writhing object into file
+	 * @param object write object into file
+	 */
 	public void write(Object paramObject){
 		this.encode.writeObject(paramObject);
 		this.encode.flush();
@@ -54,6 +58,11 @@ public class CacheWrite implements Serializable {
 		this.close();
 		super.finalize();
 	}
+	
+	/**
+	 * Get total number of object store in the file
+	 * @retunr integer count of object written in the file
+	 */
 	public int getSize(){
 		return this.size;
 	}
