@@ -1,4 +1,4 @@
-algorithm
+Apriori Algorithm
 =========
 
 Algorithm Implementation
